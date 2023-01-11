@@ -1,0 +1,171 @@
+# PyGame Tutorial -- Lance Marinc
+# V 3.0 -- 1/9/23
+
+import pygame
+import sys
+from pygame import mixer
+import os
+import math
+
+# How to add music to application
+pygame.mixer.init()
+pygame.mixer.music.load(os.path.join('good.enough.mp3'))
+pygame.mixer.music.play()
+
+pygame.init()  # this initiates the application
+
+
+class Bullet(object):
+    def __init__(self):
+        self.point = rocket.head
+        self.x, self.y = self.point
+        self.w = 4
+        self.h = 4
+        self.c = rocket.cosine
+        self.s = rocket.sine
+        self.xv = self.c * 10
+        self.yv = self.s * 10
+
+    def move(self):
+        self.x += self.xv
+        self.y -= self.yv
+
+    def draw(self, win):
+        pygame.draw.rect(win, (255, 255, 255), [self.x, self.y, self.w, self.h])
+
+
+class Player(object):
+    def __init__(self):
+        self.img = rocket
+        self.w = self.img.get_width()
+        self.h = self.img.get_height()
+        self.x = 1000 // 2
+        self.y = 900 // 2
+
+    def draw(self, win):
+        win.blit(self.img, [self.x, self.h, self.y, self.w])
+
+
+screen = pygame.display.set_mode((1000, 900))
+pygame.display.set_caption('Space Rat')
+surface = pygame.Surface((100, 100))
+surface.fill('green')
+clock = pygame.time.Clock()
+car = pygame.image.load(os.path.join('cat.jpg'))
+pygame.display.set_icon(car)
+
+# Load rocket and space background images
+rocket = pygame.image.load(os.path.join('spacecode.png'))
+rocket = pygame.transform.scale(rocket, (25, 25))
+rocketObj = rocket.get_rect()
+
+
+class Blaster(object):
+    def __init__(self, x, y, angle):
+        self.x = x
+        self.y = y
+        self.angle = angle
+        self.speed = 10
+        self.image = pygame.image.load("blaster.png")
+
+    def update(self):
+        # calculate the x and y velocity based on the angle
+        x_vel = math.cos(math.radians(self.angle)) * self.speed
+        y_vel = math.sin(math.radians(self.angle)) * self.speed
+
+        # update the position of the blaster
+        self.x += x_vel
+        self.y += y_vel
+
+    def draw(self, screen):
+        # draw the blaster on the screen
+        screen.blit(self.image, (self.x, self.y))
+
+
+bg = pygame.image.load(os.path.join('and.jpg'))
+bg = pygame.transform.scale(bg, (1000, 900))
+x_pos = 20
+y_pos = 20
+step = 5
+angle = 0
+move_right = False
+move_left = False
+move_down = False
+move_up = False
+
+while True:
+    screen.blit(bg, (0, 0))
+
+    rocketObj.center = (x_pos, y_pos)
+    # Update box position and draw box with rocket image
+    if move_left:
+        x_pos -= step
+        angle = 90
+    if move_right:
+        x_pos += step
+        angle = 270
+    if move_up:
+        y_pos -= step
+        angle = 0
+    if move_down:
+        y_pos += step
+        angle = 180
+
+    # set bounds so that the image can't leave the screen bounds
+
+    if x_pos < 0:
+        x_pos = 0
+    if x_pos > 980:
+        x_pos = 980
+    if y_pos < 0:
+        y_pos = 0
+    if y_pos > 880:
+        y_pos = 880
+
+    if move_left and x_pos > 0:  # Check if box is at the left edge of the screen
+        x_pos -= step
+        angle = 90
+    if move_right and x_pos < 800:  # Check if box is at the right edge of the screen
+        x_pos += step
+        angle = 270
+    if move_up and y_pos > 0:  # Check if box is at the top edge of the screen
+        y_pos -= step
+        angle = 0
+    if move_down and y_pos < 1000:  # Check if box is at the bottom edge of the screen
+        y_pos += step
+        angle = 180
+
+    # Rotate rocket image in the direction it is headed... made is a perfect square
+    rotated_rocket = pygame.transform.rotate(rocket, angle)
+    rotated_rect = rotated_rocket.get_rect(center=rocket.get_rect(topleft=(x_pos, y_pos)).center)
+
+    # Blit the rotated rocket image on screen with the direction... rotated rocket
+    screen.blit(rotated_rocket, rotated_rect)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        # Lines below process the events of the keyboard
+
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                move_right = True
+            if event.key == pygame.K_LEFT:
+                move_left = True
+            if event.key == pygame.K_DOWN:
+                move_down = True
+            if event.key == pygame.K_UP:
+                move_up = True
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT:
+                move_right = False
+            if event.key == pygame.K_LEFT:
+                move_left = False
+            if event.key == pygame.K_DOWN:
+                move_down = False
+            if event.key == pygame.K_UP:
+                move_up = False
+
+    pygame.display.update()
+    clock.tick(60)
